@@ -57,6 +57,23 @@ async function run() {
         const classesCartCollection = client.db('summerCampDB').collection('classesCart');
         const popularTeachersCartCollection = client.db('summerCampDB').collection('popularTeachers');
 
+
+
+        // Student verification
+        const verifyStudent = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            if (user.role !== 'student') {
+                return res.status(403).send({ error: true, message: 'forbidden message by student' });
+            }
+            next();
+        }
+
+
+
+
+
         // user section api
         app.post('/users', async (req, res) => {
             const user = req.body;
@@ -82,6 +99,15 @@ async function run() {
             const result = await usersCollection.find({ role: { $eq: 'instructor' } }).toArray();
             res.send(result);
         });
+
+        // student api
+        app.get('/user/student/:email', verifyJWT, verifyStudent, async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const data = await classesCartCollection.find(query).toArray();
+            data.role = 'student';
+            return res.send(data);
+        })
 
         // classes api
         app.get('/classes', async (req, res) => {
