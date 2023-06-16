@@ -139,14 +139,35 @@ async function run() {
             res.send(result);
         })
 
+        // Classes Cart api
+        app.post('/classes-cart', async (req, res) => {
+            const data = req.body;
+            const result = await classesCartCollection.insertOne(data);
+            res.send(result);
+        })
 
+        app.get('/classes-cart', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const result = await classesCollection.find(query).toArray();
+            res.send(result);
+        })
 
+        app.delete('/classes-cart/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await classesCartCollection.deleteOne(query);
+            res.send(result);
+        })
 
+        app.patch('/classes-cart/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const update = { $inc: { availableSeats: -1, enrolled: 1 } };
 
-
-
-
-
+            const result = await classesCollection.findOneAndUpdate(query, update);
+            res.send(result);
+        });
 
         // Instructors api
         app.get('/users/instructor/:email', verifyJWT, verifyInstructor, async (req, res) => {
