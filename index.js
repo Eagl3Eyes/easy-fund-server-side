@@ -3,10 +3,30 @@ const app = express();
 const cors = require('cors');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken');
 
 // middleware
 app.use(cors());
 app.use(express.json());
+
+
+
+// JWT verification
+const verifyJWT = async (req, res, next) => {
+    const authorization = await req.headers.authorization;
+    if (!authorization) {
+        return res.status(401).send({ error: true, message: 'unauthorized access by verifyJWT1' });
+    }
+
+    const token = authorization.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+            return res.status(401).send({ error: true, message: 'unauthorized access by verifyJWT' });
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
 
 
 
@@ -77,7 +97,7 @@ async function run() {
         })
 
         // popular teachers api
-        app.get('/teachers/banner3', async (req, res) => {
+        app.get('/teachers/popularteachers', async (req, res) => {
             const result = await popularTeachersCartCollection.find().limit(6).toArray();
             res.send(result);
         })
