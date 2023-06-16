@@ -32,7 +32,7 @@ async function run() {
 
         const usersCollection = client.db('summerCampDB').collection('users');
 
-        // user section
+        // user section api
         app.post('/users', async (req, res) => {
             const user = req.body;
             const query = { email: user.email };
@@ -51,6 +51,12 @@ async function run() {
             const result = await usersCollection.find().toArray()
             res.send(result);
         })
+
+        // Teacher section api
+        app.get('/teachers', async (req, res) => {
+            const result = await usersCollection.find({ role: { $eq: 'instructor' } }).toArray();
+            res.send(result);
+        });
 
 
 
