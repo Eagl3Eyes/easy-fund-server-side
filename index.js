@@ -204,9 +204,9 @@ run().catch(console.dir);
 
 
 app.get('/', (req, res) => {
-    res.send('Summer Camp is running!')
+    res.send('Summer Camp Server is running!')
 })
 
 app.listen(port, () => {
-    console.log(`summer camp listening on port ${port}`)
+    console.log(`Summer Camp Server listening on port ${port}`)
 })
