@@ -70,6 +70,17 @@ async function run() {
             next();
         }
 
+        // Instructor verification
+        const verifyInstructor = async (req, res, next) => {
+            const email = await req.decoded.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            if (user.role !== 'instructor') {
+                return res.status(403).send({ error: true, message: 'forbidden message by student' });
+            }
+            next();
+        }
+
 
 
 
@@ -125,6 +136,33 @@ async function run() {
         // popular teachers api
         app.get('/teachers/popularteachers', async (req, res) => {
             const result = await popularTeachersCartCollection.find().limit(6).toArray();
+            res.send(result);
+        })
+
+
+
+
+
+
+
+
+
+
+        // Instructors api
+        app.get('/users/instructor/:email', verifyJWT, verifyInstructor, async (req, res) => {
+            res.send({ role: 'instructor' });
+        })
+
+        app.post('/classes', async (req, res) => {
+            const data = req.body;
+            const result = await classesCollection.insertOne(data);
+            res.send(result);
+        })
+
+        app.get('/classes-cart/:id', verifyJWT, verifyStudent, async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await classesCartCollection.findOne(query);
             res.send(result);
         })
 
