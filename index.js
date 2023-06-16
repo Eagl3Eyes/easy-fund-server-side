@@ -4,6 +4,7 @@ const cors = require('cors');
 require('dotenv').config();
 const port = process.env.PORT || 5000;
 const jwt = require('jsonwebtoken');
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY);
 
 // middleware
 app.use(cors());
@@ -248,11 +249,40 @@ async function run() {
             return res.send(result);
         })
 
+        // payment api
+        app.post('/create-payment-intent', async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret
+            })
+        })
+
+        app.get('/payment-details/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const query = { email: email };
+            const result = await paymentsCollection.find(query).sort({ data: 1 }).toArray();
+            res.send(result);
+        })
+
+        app.post('/payments', verifyJWT, async (req, res) => {
+            const payment = req.body;
+            const insertResult = await paymentsCollection.insertOne(payment);
+            const query = { _id: new ObjectId(payment._id) };
+            const deleteResult = await classesCartCollection.deleteOne(query);
+            res.send({ insertResult, deleteResult });
+        })
 
 
 
 
-
+        // DEFAULT CODE BELOW
 
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
