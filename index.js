@@ -58,6 +58,12 @@ async function run() {
             res.send(result);
         });
 
+        // classes api
+        app.get('/classes', async (req, res) => {
+            const result = await classesCollection.find({ status: { $eq: 'approved' } }).sort({ enrolled: 1 }).toArray();
+            res.send(result);
+        })
+
 
 
 
