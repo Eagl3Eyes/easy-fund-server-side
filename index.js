@@ -30,7 +30,12 @@ async function run() {
         await client.connect();
         // Send a ping to confirm a successful connection
 
+        // DB Collection
         const usersCollection = client.db('summerCampDB').collection('users');
+        const classesCollection = client.db('summerCampDB').collection('classes');
+        const paymentsCollection = client.db('summerCampDB').collection('payments');
+        const classesCartCollection = client.db('summerCampDB').collection('classesCart');
+        const popularTeachersCartCollection = client.db('summerCampDB').collection('popularTeachers');
 
         // user section api
         app.post('/users', async (req, res) => {
@@ -61,6 +66,13 @@ async function run() {
         // classes api
         app.get('/classes', async (req, res) => {
             const result = await classesCollection.find({ status: { $eq: 'approved' } }).sort({ enrolled: 1 }).toArray();
+            res.send(result);
+        })
+
+        // popular classes api
+        app.get('/classes/popularclasses', async (req, res) => {
+            const query = { enrolled: { $gt: 5 }, status: { $eq: 'approved' } };
+            const result = await classesCollection.find(query).sort({ enrolled: 1 }).limit(6).toArray();
             res.send(result);
         })
 
