@@ -76,6 +76,12 @@ async function run() {
             res.send(result);
         })
 
+        // popular teachers api
+        app.get('/teachers/banner3', async (req, res) => {
+            const result = await popularTeachersCartCollection.find().limit(6).toArray();
+            res.send(result);
+        })
+
 
 
 
