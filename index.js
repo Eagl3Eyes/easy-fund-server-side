@@ -81,6 +81,24 @@ async function run() {
             next();
         }
 
+        // Admin verification
+        const verifyAdmin = async (req, res, next) => {
+            const email = req.decoded.email;
+            const query = { email: email };
+            const user = await usersCollection.findOne(query);
+            if (user.role !== 'admin') {
+                return res.status(403).send({ error: true, message: 'forbidden message by student' });
+            }
+            next();
+        }
+
+        // Users and JWT api
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' });
+            res.send({ token });
+        })
+
 
 
 
@@ -185,6 +203,49 @@ async function run() {
             const query = { _id: new ObjectId(id) };
             const result = await classesCartCollection.findOne(query);
             res.send(result);
+        })
+
+        // admin api
+        app.get('/users/admin/:email', verifyJWT, verifyAdmin, async (req, res) => {
+            res.send({ role: 'admin' });
+        })
+
+        app.get('/all-users-data', verifyJWT, verifyAdmin, async (req, res) => {
+            const result = await usersCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.patch('/all-users-data/', async (req, res) => {
+            const role = req.query.role;
+            const email = req.query.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: {
+                    role: role
+                },
+            };
+            const result = await usersCollection.updateOne(filter, updateDoc);
+            res.send(result);
+        })
+
+        app.get('/all-classes-data', verifyJWT, verifyAdmin, async (req, res) => {
+            const result = await classesCollection.find().toArray();
+            res.send(result);
+        })
+
+        app.patch('/all-classes-data', async (req, res) => {
+            const feedback = req.query.feedback;
+            const status = req.query.status;
+            const id = req.query.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+                $set: {
+                    feedback: feedback,
+                    status: status
+                },
+            };
+            const result = await classesCollection.updateOne(filter, updateDoc);
+            return res.send(result);
         })
 
 
